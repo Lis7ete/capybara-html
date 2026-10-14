@@ -1,5 +1,3 @@
-кnotepad
-
 
 <!DOCTYPE html>
 <html lang="ru">
@@ -7,73 +5,73 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Капибара-бамбукер 🦫</title>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#203b2d;color:#fff4d6;text-align:center;
-font-family:system-ui,sans-serif;padding:12px}
+body{margin:0;padding:12px;background:#203b2d;color:#fff4d6;font-family:system-ui,sans-serif;text-align:center}
 main{max-width:1050px;margin:auto}
-h1{margin:4px;font-size:clamp(23px,5vw,34px)}
+h1{font-size:clamp(23px,5vw,34px);margin:5px}
 .panel,.stat{background:#34563c;border:1px solid #789a66;border-radius:12px;padding:10px}
 .panel{margin:12px auto}
-input{padding:12px;border-radius:9px;border:0;width:145px;font-size:16px}
-button{background:#f4d68b;color:#49391f;border:0;border-radius:9px;
-padding:11px;margin:3px;font-weight:bold;cursor:pointer}
-.stats,.buttons{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;margin:10px}
-canvas{display:block;width:100%;height:auto;border:3px solid #a5c38a;border-radius:14px}
-#message{min-height:34px;color:#ffe49a;padding:8px}
-#code{font-size:24px;color:#ffe49a;font-weight:bold;letter-spacing:3px}
-#touch{display:grid;grid-template-columns:repeat(3,56px);gap:5px;justify-content:center;margin:12px}
+input{padding:11px;border:0;border-radius:9px;width:155px;font-size:16px}
+button{background:#f4d68b;color:#49391f;border:0;border-radius:9px;padding:11px;margin:3px;font-weight:bold;cursor:pointer}
+.stats,.buttons{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:10px}
+canvas{width:100%;height:auto;border:3px solid #a5c38a;border-radius:14px;display:block}
+#message{min-height:36px;color:#ffe49a;padding:8px}
+#code{font-size:25px;font-weight:bold;letter-spacing:3px;color:#ffe49a}
+#touch{display:grid;grid-template-columns:repeat(3,58px);gap:5px;justify-content:center;margin:12px}
 #touch button{font-size:20px}
-small{line-height:1.8;color:#dce9ce}
+small{line-height:1.9;color:#dce9ce}
 </style>
 </head>
 <body>
 <main>
 <h1>🦫 Капибара-бамбукер 🏝️</h1>
-<p>Собирай растения, торгуй и играй с друзьями!</p>
+<p>Собирай растения, продавай их и играй с друзьями!</p>
 
 <section class="panel">
- <b>👥 Кооператив по коду комнаты</b><br><br>
- <input id="name" maxlength="18" placeholder="Имя игрока" value="Капибара">
- <button id="create">🏠 Создать лобби</button><br>
- <input id="room" maxlength="6" placeholder="КОД КОМНАТЫ">
- <button id="join">🚪 Войти</button>
- <p>Код для друзей:</p>
- <div id="code">—</div>
- <button id="copy">📋 Копировать код</button>
- <p id="status">Подключись к серверу, чтобы начать.</p>
- <p id="players">Игроки: 0</p>
+<strong>👥 Кооператив по интернету</strong><br><br>
+<input id="name" maxlength="18" value="Капибара" placeholder="Имя">
+<button id="create">🏠 Создать лобби</button><br>
+<input id="room" maxlength="20" placeholder="Код друга">
+<button id="join">🚪 Войти в лобби</button>
+<p>Код для друзей:</p>
+<div id="code">—</div>
+<button id="copy">📋 Копировать код</button>
+<p id="status">Подключаем сетевую библиотеку…</p>
+<p id="players">Игроки: 0</p>
 </section>
 
 <div class="stats">
- <div class="stat">🪙 <b id="coins">0</b></div>
- <div class="stat">🎋 <b id="bamboo">0</b></div>
- <div class="stat">🌻 <b id="sun">0</b></div>
- <div class="stat">🌼 <b id="daisy">0</b></div>
- <div class="stat">🎒 <b id="bag">0/10</b></div>
- <div class="stat">📦 <b id="sold">0</b></div>
+<div class="stat">🪙 <b id="coins">0</b></div>
+<div class="stat">🎋 <b id="bamboo">0</b></div>
+<div class="stat">🌻 <b id="sun">0</b></div>
+<div class="stat">🌼 <b id="daisy">0</b></div>
+<div class="stat">🎒 <b id="bag">0/10</b></div>
+<div class="stat">📦 <b id="sold">0</b></div>
 </div>
 
 <canvas id="game" width="1000" height="620"></canvas>
-<div id="message">Создай лобби или войди в комнату друга.</div>
+<div id="message">Создай комнату и отправь код другу.</div>
 
 <div class="buttons">
- <button id="music">🎵 Включить музыку</button>
- <button data-upgrade="bag">🎒 Улучшить рюкзак</button>
- <button data-upgrade="speed">⚡ Увеличить скорость</button>
- <button data-upgrade="price">💎 Повысить цену</button>
+<button id="music">🎵 Включить музыку</button>
+<button data-upgrade="bag">🎒 Рюкзак</button>
+<button data-upgrade="speed">⚡ Скорость</button>
+<button data-upgrade="price">💎 Цена</button>
 </div>
 
 <div id="touch">
- <span></span><button data-dir="w">⬆️</button><span></span>
- <button data-dir="a">⬅️</button><button data-dir="s">⬇️</button>
- <button data-dir="d">➡️</button>
+<span></span><button data-dir="w">⬆️</button><span></span>
+<button data-dir="a">⬅️</button><button data-dir="s">⬇️</button>
+<button data-dir="d">➡️</button>
 </div>
 
 <small>
-WASD или ЦФЫВ — движение · F или А — продажа<br>
-Панда находится в старой локации. Кот ждёт на острове.<br>
-Иди по песчаному мосту. Подходи к бамбуку, подсолнухам и ромашкам для сбора.
+WASD / ЦФЫВ — движение · F / А — продажа<br>
+🐼 Панда в старой локации · 🐱 Кот на острове<br>
+🎋 Собирай бамбук · 🌻 Подсолнухи · 🌼 Ромашки<br>
+Продавай растения обоим торговцам!
 </small>
 </main>
 
@@ -85,25 +83,25 @@ const $=id=>document.getElementById(id);
 const canvas=$("game"),ctx=canvas.getContext("2d");
 const W=1000,H=620;
 
-let ws=null,myId=null,players=[],plants=[],roomCode="";
+let peer=null,host=false,connected=false,myId=null;
+let hostConn=null,connections=new Map();
+let players=[],plants=[],roomCode="",nextPlant=1;
 let input={w:false,a:false,s:false,d:false};
-let connected=false;
-let audio=null,musicOn=false,musicTimer=null;
-let note=0,nextNote=0;
+let audio=null,musicOn=false,musicTimer=null,musicIndex=0,nextNote=0;
+let lastTime=0,lastBroadcast=0;
 
 const panda={x:300,y:280};
 const cat={x:815,y:300};
-const island={x:780,y:310};
-const melody=[523,659,784,659,587,698,880,698,
-523,659,784,1047,880,784,659,587,
-659,784,880,784,659,523,587,659,784,880,1047,880,784,659,587,523];
+const melody=[523,659,784,659,587,698,880,698,523,659,784,1047,
+880,784,659,587,659,784,880,784,659,523,587,659,784,880,1047,880,784,659,587,523];
 
 function say(t){$("message").textContent=t}
-function send(o){
- if(ws&&ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify(o));
+function send(conn,data){
+ try{if(conn&&conn.open)conn.send(data)}catch(e){}
 }
 function me(){return players.find(p=>p.id===myId)}
 function near(a,b,d){return Math.hypot(a.x-b.x,a.y-b.y)<d}
+function randomCode(){return "capy"+Math.random().toString(36).slice(2,9)}
 function emoji(s,x,y,size=28){
  ctx.font=size+'px "Apple Color Emoji","Segoe UI Emoji",sans-serif';
  ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(s,x,y);
@@ -112,66 +110,44 @@ function ellipse(x,y,rx,ry,color){
  ctx.fillStyle=color;ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.fill();
 }
 
-function connect(){
- if(ws)ws.close();
- const scheme=location.protocol==="https:"?"wss:":"ws:";
- ws=new WebSocket(scheme+"//"+location.host);
-
- ws.onopen=()=>{
-   connected=true;
-   $("status").textContent="Соединение с сервером установлено.";
-   say("Соединились с сервером! Создай комнату или введи код друга.");
- };
- ws.onclose=()=>{
-   connected=false;
-   $("status").textContent="Нет соединения с сервером.";
- };
- ws.onerror=()=>{
-   $("status").textContent="Не удалось подключиться к серверу.";
- };
- ws.onmessage=e=>{
-   let m;
-   try{m=JSON.parse(e.data)}catch{return}
-   if(m.type==="welcome"){
-     myId=m.id;
-     roomCode=m.code;
-     $("code").textContent=roomCode;
-     $("room").value=roomCode;
-   }
-   if(m.type==="state"){
-     players=m.players||[];
-     plants=m.plants||[];
-     roomCode=m.code||roomCode;
-     $("code").textContent=roomCode;
-     $("players").textContent="Игроки: "+players.length+"/8";
-     updateStats();
-   }
-   if(m.type==="notice")say(m.text);
-   if(m.type==="error")say(m.text);
- };
+function createPlayer(id,name,x=130,y=310){
+ return {id,name:String(name||"Капибара").slice(0,18),x,y,
+ bamboo:0,sun:0,daisy:0,coins:0,sold:0,
+ capacity:10,speed:165,price:3,input:{w:false,a:false,s:false,d:false}};
+}
+function makePlant(id){
+ const type=["bamboo","bamboo","sun","daisy"][Math.floor(Math.random()*4)];
+ let x,y;
+ for(let n=0;n<100;n++){
+   x=40+Math.random()*920;y=45+Math.random()*530;
+   if(walkable(x,y)&&Math.hypot(x-300,y-280)>70&&Math.hypot(x-815,y-300)>70)break;
+ }
+ return {id,type,x,y};
+}
+function initPlants(){
+ plants=[];nextPlant=1;
+ for(let i=0;i<45;i++)plants.push(makePlant(nextPlant++));
 }
 
-function startRoom(){
- if(!connected){connect();say("Подключаемся. Нажми «Создать лобби» ещё раз через секунду.");return}
- send({type:"create",name:$("name").value||"Капибара"});
-}
-function joinRoom(){
- if(!connected){connect();say("Подключаемся. После соединения нажми «Войти» ещё раз.");return}
- const code=$("room").value.trim().toUpperCase();
- if(!code){say("Введи код комнаты друга.");return}
- send({type:"join",code,name:$("name").value||"Капибара"});
+function walkable(x,y){
+ if(x<20||x>980||y<20||y>600)return false;
+ const oval=(cx,cy,rx,ry)=>((x-cx)/rx)**2+((y-cy)/ry)**2<=1;
+ return oval(225,310,230,245)||oval(780,310,185,190)||
+   (x>=405&&x<=595&&Math.abs(y-310)<27);
 }
 
-$("create").onclick=startRoom;
-$("join").onclick=joinRoom;
-$("copy").onclick=async()=>{
- if(!roomCode){say("Сначала создай лобби.");return}
- try{await navigator.clipboard.writeText(roomCode);say("Код скопирован! Отправь его другу.")}
- catch{$("room").value=roomCode;say("Код: "+roomCode+". Скопируй его вручную.")}
-};
-
-function updateStats(){
- const p=me();if(!p)return;
+function statePacket(){
+ return {type:"state",players,plants,code:roomCode};
+}
+function broadcast(){
+ if(!host)return;
+ const packet=statePacket();
+ connections.forEach(c=>send(c,packet));
+}
+function refresh(){
+ const p=me();
+ $("players").textContent="Игроки: "+players.length+"/8";
+ if(!p)return;
  $("coins").textContent=p.coins;
  $("bamboo").textContent=p.bamboo;
  $("sun").textContent=p.sun;
@@ -180,34 +156,212 @@ function updateStats(){
  $("sold").textContent=p.sold;
 }
 
-function sell(){
- if(!myId){say("Сначала создай лобби или войди к другу.");return}
- send({type:"sell"});
+function closePeer(){
+ if(peer){try{peer.destroy()}catch(e){}}
+ peer=null;hostConn=null;connections.clear();
+ connected=false;host=false;myId=null;players=[];plants=[];
 }
-function upgrade(kind){send({type:"upgrade",kind})}
+function setupPeer(){
+ if(typeof Peer==="undefined"){
+   say("PeerJS не загрузился. Проверь интернет или блокировщик рекламы.");
+   return false;
+ }
+ return true;
+}
+
+function createLobby(){
+ if(!setupPeer())return;
+ closePeer();
+ host=true;
+ roomCode=randomCode();
+ myId=null;
+ $("code").textContent="Подключаемся…";
+ $("status").textContent="Создаём комнату…";
+ peer=new Peer(roomCode);
+
+ peer.on("open",id=>{
+   myId=id;roomCode=id;
+   players=[createPlayer(myId,$("name").value)];
+   initPlants();
+   connected=true;
+   $("code").textContent=roomCode;
+   $("room").value=roomCode;
+   $("status").textContent="Лобби открыто. Отправь код друзьям!";
+   say("Комната создана! Код: "+roomCode);
+   refresh();broadcast();
+ });
+
+ peer.on("connection",conn=>{
+   conn.on("open",()=>{
+     if(players.length>=8){
+       send(conn,{type:"error",text:"Комната заполнена."});
+       conn.close();return;
+     }
+     const p=createPlayer(conn.peer,"Капибара",145+Math.random()*30,310);
+     players.push(p);
+     connections.set(conn.peer,conn);
+     send(conn,{type:"welcome",id:conn.peer,code:roomCode});
+     send(conn,statePacket());
+     say("Новый друг присоединился! 👥");
+     refresh();broadcast();
+   });
+
+   conn.on("data",data=>{
+     if(!data||typeof data.type!=="string")return;
+     const p=players.find(q=>q.id===conn.peer);
+     if(!p)return;
+     if(data.type==="input"){
+       p.input={
+         w:!!data.input?.w,a:!!data.input?.a,
+         s:!!data.input?.s,d:!!data.input?.d
+       };
+     }
+     if(data.type==="sell")sell(p,conn);
+     if(data.type==="upgrade")upgrade(p,data.kind,conn);
+   });
+
+   conn.on("close",()=>{
+     connections.delete(conn.peer);
+     players=players.filter(p=>p.id!==conn.peer);
+     broadcast();refresh();
+   });
+   conn.on("error",()=>{});
+ });
+ peer.on("error",err=>{
+   $("status").textContent="Ошибка PeerJS: "+err.type;
+   say("Не удалось создать комнату. Попробуй ещё раз.");
+ });
+}
+
+function joinLobby(){
+ if(!setupPeer())return;
+ const code=$("room").value.trim().toLowerCase();
+ if(!/^capy[a-z0-9]{4,12}$/.test(code)){
+   say("Введи правильный код комнаты.");
+   return;
+ }
+ closePeer();
+ $("status").textContent="Подключаемся к хосту…";
+ peer=new Peer();
+
+ peer.on("open",()=>{
+   const conn=peer.connect(code,{reliable:true});
+   hostConn=conn;
+
+   conn.on("open",()=>{
+     connected=true;
+     $("status").textContent="Соединение установлено!";
+     say("Ты в комнате! Собирай растения вместе с друзьями.");
+   });
+
+   conn.on("data",data=>{
+     if(!data)return;
+     if(data.type==="welcome"){
+       myId=data.id;roomCode=data.code;
+       $("code").textContent=roomCode;
+       $("room").value=roomCode;
+     }
+     if(data.type==="state"){
+       players=data.players||[];
+       plants=data.plants||[];
+       roomCode=data.code||roomCode;
+       $("code").textContent=roomCode;
+       refresh();
+     }
+     if(data.type==="notice")say(data.text);
+     if(data.type==="error")say(data.text);
+   });
+
+   conn.on("close",()=>{
+     connected=false;
+     $("status").textContent="Хост отключился.";
+     say("Соединение с ведущим потеряно.");
+   });
+   conn.on("error",()=>{
+     $("status").textContent="Ошибка подключения к хосту.";
+   });
+ });
+
+ peer.on("error",err=>{
+   $("status").textContent="Ошибка PeerJS: "+err.type;
+   say("Не удалось подключиться. Проверь код и доступность хоста.");
+ });
+}
+
+$("create").onclick=createLobby;
+$("join").onclick=joinLobby;
+$("copy").onclick=async()=>{
+ if(!roomCode){say("Сначала создай комнату.");return}
+ try{await navigator.clipboard.writeText(roomCode);say("Код скопирован! Отправь другу.")}
+ catch{$("room").value=roomCode;say("Код: "+roomCode+". Скопируй его вручную.")}
+};
+
+function requestSale(){
+ if(!myId){say("Сначала войди в лобби.");return}
+ if(host){
+   const p=me();if(p)sell(p,null);
+ }else send(hostConn,{type:"sell"});
+}
+function sell(p,conn){
+ const trader=near(p,panda,78)?"Панда":near(p,cat,78)?"Кот":null;
+ if(!trader){
+   if(p.id===myId)say("Подойди к панде или коту и нажми F!");
+   return;
+ }
+ const total=p.bamboo+p.sun+p.daisy;
+ if(!total){
+   if(p.id===myId)say(trader+": принеси растения!");
+   return;
+ }
+ const earned=p.bamboo*p.price+p.sun*(p.price+2)+p.daisy*(p.price+1);
+ p.coins+=earned;p.sold+=total;
+ p.bamboo=p.sun=p.daisy=0;
+ if(p.id===myId)say(trader+" купил растения! +"+earned+" 🪙");
+ broadcast();refresh();
+}
+function upgrade(p,kind,conn){
+ const cost=kind==="bag"?p.capacity*2+10:
+ kind==="speed"?40+p.speed-165:
+ kind==="price"?60+(p.price-3)*30:0;
+ if(!cost)return;
+ if(p.coins<cost){
+   if(p.id===myId)say("Не хватает монет! Нужно "+cost);
+   return;
+ }
+ p.coins-=cost;
+ if(kind==="bag")p.capacity+=10;
+ if(kind==="speed")p.speed+=30;
+ if(kind==="price")p.price++;
+ if(p.id===myId)say("Улучшение куплено!");
+ broadcast();refresh();
+}
 document.querySelectorAll("[data-upgrade]").forEach(b=>{
- b.onclick=()=>upgrade(b.dataset.upgrade);
+ b.onclick=()=>{
+   const kind=b.dataset.upgrade;
+   if(!host){send(hostConn,{type:"upgrade",kind});return}
+   const p=me();if(p)upgrade(p,kind,null);
+ };
 });
 
-// KeyW, KeyA и т.д. не зависят от выбранной раскладки.
-const map={KeyW:"w",KeyA:"a",KeyS:"s",KeyD:"d",
+const keyMap={KeyW:"w",KeyA:"a",KeyS:"s",KeyD:"d",
  ArrowUp:"w",ArrowLeft:"a",ArrowDown:"s",ArrowRight:"d",KeyF:"f"};
-function transmitInput(){send({type:"input",input})}
-
+function transmitInput(){
+ if(host){const p=me();if(p)p.input={...input}}
+ else send(hostConn,{type:"input",input});
+}
 window.addEventListener("keydown",e=>{
- const k=map[e.code];if(!k)return;
+ const k=keyMap[e.code];if(!k)return;
  e.preventDefault();
- if(k==="f"){if(!e.repeat)sell();return}
+ if(k==="f"){if(!e.repeat)requestSale();return}
  input[k]=true;transmitInput();
 });
 window.addEventListener("keyup",e=>{
- const k=map[e.code];if(!k||k==="f")return;
+ const k=keyMap[e.code];if(!k||k==="f")return;
  input[k]=false;transmitInput();
 });
 window.addEventListener("blur",()=>{
  input={w:false,a:false,s:false,d:false};transmitInput();
 });
-
 document.querySelectorAll("[data-dir]").forEach(b=>{
  const k=b.dataset.dir;
  b.addEventListener("pointerdown",e=>{
@@ -220,21 +374,20 @@ document.querySelectorAll("[data-dir]").forEach(b=>{
  b.addEventListener("lostpointercapture",release);
 });
 
-// Весёлая музыка синтезируется браузером, отдельные файлы не нужны.
-function tone(freq,duration=.15,volume=.025,type="square"){
+// Весёлая музыка без аудиофайлов.
+function tone(freq,dur=.14,vol=.025){
  if(!audio||audio.state!=="running")return;
  const o=audio.createOscillator(),g=audio.createGain();
- o.type=type;o.frequency.value=freq;
- g.gain.setValueAtTime(volume,audio.currentTime);
- g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+duration);
+ o.type="square";o.frequency.value=freq;
+ g.gain.setValueAtTime(vol,audio.currentTime);
+ g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+dur);
  o.connect(g);g.connect(audio.destination);
- o.start();o.stop(audio.currentTime+duration);
+ o.start();o.stop(audio.currentTime+dur);
 }
 function musicStep(){
  if(!musicOn||!audio||audio.state!=="running")return;
- const now=audio.currentTime;
- while(nextNote<now+.2){
-   const f=melody[note++%melody.length];
+ while(nextNote<audio.currentTime+.2){
+   const f=melody[musicIndex++%melody.length];
    const o=audio.createOscillator(),g=audio.createGain();
    o.type="square";o.frequency.value=f;
    g.gain.setValueAtTime(.001,nextNote);
@@ -248,7 +401,7 @@ function musicStep(){
 $("music").onclick=async()=>{
  if(!audio){
    const AC=window.AudioContext||window.webkitAudioContext;
-   if(!AC){say("Браузер не поддерживает музыку.");return}
+   if(!AC){say("Музыка не поддерживается.");return}
    audio=new AC();
  }
  if(audio.state==="suspended")await audio.resume();
@@ -263,10 +416,11 @@ $("music").onclick=async()=>{
  }
 };
 
-function drawLand(obj,rx,ry){
- ellipse(obj.x,obj.y,rx,ry,"#d6b473");
- ellipse(obj.x,obj.y,rx-10,ry-10,"#f3dca0");
- ellipse(obj.x,obj.y,rx-24,ry-24,"#83bd68");
+// Рисование мира.
+function drawLand(x,y,rx,ry){
+ ellipse(x,y,rx,ry,"#d6b473");
+ ellipse(x,y,rx-10,ry-10,"#f3dca0");
+ ellipse(x,y,rx-24,ry-24,"#83bd68");
 }
 function flower(x,y,type,size){
  ctx.strokeStyle="#398746";ctx.lineWidth=2;
@@ -283,8 +437,7 @@ function flower(x,y,type,size){
 function field(x,y,cols,rows,type,step){
  ctx.fillStyle="#76a24f";
  ctx.beginPath();ctx.roundRect(x-10,y-10,cols*step+10,rows*step+10,10);ctx.fill();
- for(let r=0;r<rows;r++)for(let c=0;c<cols;c++)
-   flower(x+c*step,y+r*step,type,type==="sun"?19:16);
+ for(let r=0;r<rows;r++)for(let c=0;c<cols;c++)flower(x+c*step,y+r*step,type,type==="sun"?19:16);
 }
 function trader(p,animal,name){
  ellipse(p.x,p.y+25,38,11,"#669550");
@@ -313,17 +466,14 @@ function draw(){
  const g=ctx.createLinearGradient(0,0,W,H);
  g.addColorStop(0,"#55d9e8");g.addColorStop(1,"#0876af");
  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
-
  for(let i=0;i<75;i++){
    const x=(i*137+27)%W,y=(i*89+13)%H;
    ctx.strokeStyle="#8ce6ef";ctx.lineWidth=2;
    ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+12,y);ctx.stroke();
  }
+ drawLand(225,310,260,275);
+ drawLand(780,310,215,220);
 
- drawLand({x:225,y:310},260,275);
- drawLand(island,215,220);
-
- // Песчаная тропинка соединяет оба острова.
  ctx.lineCap="round";ctx.strokeStyle="#d1ad68";ctx.lineWidth=58;
  ctx.beginPath();ctx.moveTo(420,310);ctx.lineTo(580,310);ctx.stroke();
  ctx.strokeStyle="#f5dda0";ctx.lineWidth=44;
@@ -332,7 +482,6 @@ function draw(){
  field(620,145,7,4,"sun",24);
  field(610,420,7,3,"daisy",25);
  field(810,170,4,3,"daisy",22);
-
  ellipse(790,390,47,34,"#4b9150");
  ellipse(790,390,40,27,"#64c9df");
  emoji("🪷",772,390,17);
@@ -340,7 +489,6 @@ function draw(){
  plants.forEach(drawPlant);
  trader(panda,"🐼","ПАНДА");
  trader(cat,"🐱","КОТ");
-
  players.forEach(p=>{
    ellipse(p.x,p.y+13,21,8,"#5f904c");
    emoji("🦫",p.x,p.y,40);
@@ -348,15 +496,56 @@ function draw(){
    ctx.fillStyle="#fff8d8";ctx.font="bold 12px system-ui";
    ctx.fillText(p.name,p.x,p.y-29);
  });
-
  ctx.fillStyle="#fff6d8";ctx.font="bold 15px system-ui";
  ctx.fillText("СТАРАЯ ЛОКАЦИЯ",220,75);
  ctx.fillText("ОСТРОВ ЦВЕТОВ 🌻",790,75);
  ctx.fillText("ПЕСЧАНЫЙ МОСТ →",500,278);
- requestAnimationFrame(draw);
 }
-connect();
-requestAnimationFrame(draw);
+
+function simulate(dt){
+ if(!host)return;
+ for(const p of players){
+   const i=p.input||{};
+   let dx=Number(i.d)-Number(i.a);
+   let dy=Number(i.s)-Number(i.w);
+   if(dx&&dy){dx*=Math.SQRT1_2;dy*=Math.SQRT1_2}
+   const nx=p.x+dx*p.speed*dt,ny=p.y+dy*p.speed*dt;
+   if(walkable(nx,p.y))p.x=nx;
+   if(walkable(p.x,ny))p.y=ny;
+
+   if(p.bamboo+p.sun+p.daisy<p.capacity){
+     const idx=plants.findIndex(b=>near(p,b,24));
+     if(idx>=0){
+       const b=plants.splice(idx,1)[0];
+       if(b.type==="bamboo")p.bamboo++;
+       if(b.type==="sun")p.sun++;
+       if(b.type==="daisy")p.daisy++;
+       if(p.id===myId){say("Растение собрано! 🌿");tone(880,.08,.025)}
+       plants.push(makePlant(nextPlant++));
+     }
+   }
+ }
+}
+
+function frame(t){
+ const dt=Math.min((t-lastTime)/1000||0,.04);
+ lastTime=t;
+ if(host&&connected){
+   simulate(dt);
+   if(t-lastBroadcast>50){
+     broadcast();lastBroadcast=t;refresh();
+   }
+ }
+ draw();
+ requestAnimationFrame(frame);
+}
+
+requestAnimationFrame(frame);
+if(typeof Peer==="undefined"){
+ $("status").textContent="Не загрузилась PeerJS. Проверь интернет.";
+}else{
+ $("status").textContent="Готово. Создай лобби или введи код друга.";
+}
 })();
 </script>
 </body>
