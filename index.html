@@ -1,0 +1,363 @@
+кnotepad
+
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Капибара-бамбукер 🦫</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#203b2d;color:#fff4d6;text-align:center;
+font-family:system-ui,sans-serif;padding:12px}
+main{max-width:1050px;margin:auto}
+h1{margin:4px;font-size:clamp(23px,5vw,34px)}
+.panel,.stat{background:#34563c;border:1px solid #789a66;border-radius:12px;padding:10px}
+.panel{margin:12px auto}
+input{padding:12px;border-radius:9px;border:0;width:145px;font-size:16px}
+button{background:#f4d68b;color:#49391f;border:0;border-radius:9px;
+padding:11px;margin:3px;font-weight:bold;cursor:pointer}
+.stats,.buttons{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;margin:10px}
+canvas{display:block;width:100%;height:auto;border:3px solid #a5c38a;border-radius:14px}
+#message{min-height:34px;color:#ffe49a;padding:8px}
+#code{font-size:24px;color:#ffe49a;font-weight:bold;letter-spacing:3px}
+#touch{display:grid;grid-template-columns:repeat(3,56px);gap:5px;justify-content:center;margin:12px}
+#touch button{font-size:20px}
+small{line-height:1.8;color:#dce9ce}
+</style>
+</head>
+<body>
+<main>
+<h1>🦫 Капибара-бамбукер 🏝️</h1>
+<p>Собирай растения, торгуй и играй с друзьями!</p>
+
+<section class="panel">
+ <b>👥 Кооператив по коду комнаты</b><br><br>
+ <input id="name" maxlength="18" placeholder="Имя игрока" value="Капибара">
+ <button id="create">🏠 Создать лобби</button><br>
+ <input id="room" maxlength="6" placeholder="КОД КОМНАТЫ">
+ <button id="join">🚪 Войти</button>
+ <p>Код для друзей:</p>
+ <div id="code">—</div>
+ <button id="copy">📋 Копировать код</button>
+ <p id="status">Подключись к серверу, чтобы начать.</p>
+ <p id="players">Игроки: 0</p>
+</section>
+
+<div class="stats">
+ <div class="stat">🪙 <b id="coins">0</b></div>
+ <div class="stat">🎋 <b id="bamboo">0</b></div>
+ <div class="stat">🌻 <b id="sun">0</b></div>
+ <div class="stat">🌼 <b id="daisy">0</b></div>
+ <div class="stat">🎒 <b id="bag">0/10</b></div>
+ <div class="stat">📦 <b id="sold">0</b></div>
+</div>
+
+<canvas id="game" width="1000" height="620"></canvas>
+<div id="message">Создай лобби или войди в комнату друга.</div>
+
+<div class="buttons">
+ <button id="music">🎵 Включить музыку</button>
+ <button data-upgrade="bag">🎒 Улучшить рюкзак</button>
+ <button data-upgrade="speed">⚡ Увеличить скорость</button>
+ <button data-upgrade="price">💎 Повысить цену</button>
+</div>
+
+<div id="touch">
+ <span></span><button data-dir="w">⬆️</button><span></span>
+ <button data-dir="a">⬅️</button><button data-dir="s">⬇️</button>
+ <button data-dir="d">➡️</button>
+</div>
+
+<small>
+WASD или ЦФЫВ — движение · F или А — продажа<br>
+Панда находится в старой локации. Кот ждёт на острове.<br>
+Иди по песчаному мосту. Подходи к бамбуку, подсолнухам и ромашкам для сбора.
+</small>
+</main>
+
+<script>
+(() => {
+"use strict";
+
+const $=id=>document.getElementById(id);
+const canvas=$("game"),ctx=canvas.getContext("2d");
+const W=1000,H=620;
+
+let ws=null,myId=null,players=[],plants=[],roomCode="";
+let input={w:false,a:false,s:false,d:false};
+let connected=false;
+let audio=null,musicOn=false,musicTimer=null;
+let note=0,nextNote=0;
+
+const panda={x:300,y:280};
+const cat={x:815,y:300};
+const island={x:780,y:310};
+const melody=[523,659,784,659,587,698,880,698,
+523,659,784,1047,880,784,659,587,
+659,784,880,784,659,523,587,659,784,880,1047,880,784,659,587,523];
+
+function say(t){$("message").textContent=t}
+function send(o){
+ if(ws&&ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify(o));
+}
+function me(){return players.find(p=>p.id===myId)}
+function near(a,b,d){return Math.hypot(a.x-b.x,a.y-b.y)<d}
+function emoji(s,x,y,size=28){
+ ctx.font=size+'px "Apple Color Emoji","Segoe UI Emoji",sans-serif';
+ ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(s,x,y);
+}
+function ellipse(x,y,rx,ry,color){
+ ctx.fillStyle=color;ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.fill();
+}
+
+function connect(){
+ if(ws)ws.close();
+ const scheme=location.protocol==="https:"?"wss:":"ws:";
+ ws=new WebSocket(scheme+"//"+location.host);
+
+ ws.onopen=()=>{
+   connected=true;
+   $("status").textContent="Соединение с сервером установлено.";
+   say("Соединились с сервером! Создай комнату или введи код друга.");
+ };
+ ws.onclose=()=>{
+   connected=false;
+   $("status").textContent="Нет соединения с сервером.";
+ };
+ ws.onerror=()=>{
+   $("status").textContent="Не удалось подключиться к серверу.";
+ };
+ ws.onmessage=e=>{
+   let m;
+   try{m=JSON.parse(e.data)}catch{return}
+   if(m.type==="welcome"){
+     myId=m.id;
+     roomCode=m.code;
+     $("code").textContent=roomCode;
+     $("room").value=roomCode;
+   }
+   if(m.type==="state"){
+     players=m.players||[];
+     plants=m.plants||[];
+     roomCode=m.code||roomCode;
+     $("code").textContent=roomCode;
+     $("players").textContent="Игроки: "+players.length+"/8";
+     updateStats();
+   }
+   if(m.type==="notice")say(m.text);
+   if(m.type==="error")say(m.text);
+ };
+}
+
+function startRoom(){
+ if(!connected){connect();say("Подключаемся. Нажми «Создать лобби» ещё раз через секунду.");return}
+ send({type:"create",name:$("name").value||"Капибара"});
+}
+function joinRoom(){
+ if(!connected){connect();say("Подключаемся. После соединения нажми «Войти» ещё раз.");return}
+ const code=$("room").value.trim().toUpperCase();
+ if(!code){say("Введи код комнаты друга.");return}
+ send({type:"join",code,name:$("name").value||"Капибара"});
+}
+
+$("create").onclick=startRoom;
+$("join").onclick=joinRoom;
+$("copy").onclick=async()=>{
+ if(!roomCode){say("Сначала создай лобби.");return}
+ try{await navigator.clipboard.writeText(roomCode);say("Код скопирован! Отправь его другу.")}
+ catch{$("room").value=roomCode;say("Код: "+roomCode+". Скопируй его вручную.")}
+};
+
+function updateStats(){
+ const p=me();if(!p)return;
+ $("coins").textContent=p.coins;
+ $("bamboo").textContent=p.bamboo;
+ $("sun").textContent=p.sun;
+ $("daisy").textContent=p.daisy;
+ $("bag").textContent=(p.bamboo+p.sun+p.daisy)+"/"+p.capacity;
+ $("sold").textContent=p.sold;
+}
+
+function sell(){
+ if(!myId){say("Сначала создай лобби или войди к другу.");return}
+ send({type:"sell"});
+}
+function upgrade(kind){send({type:"upgrade",kind})}
+document.querySelectorAll("[data-upgrade]").forEach(b=>{
+ b.onclick=()=>upgrade(b.dataset.upgrade);
+});
+
+// KeyW, KeyA и т.д. не зависят от выбранной раскладки.
+const map={KeyW:"w",KeyA:"a",KeyS:"s",KeyD:"d",
+ ArrowUp:"w",ArrowLeft:"a",ArrowDown:"s",ArrowRight:"d",KeyF:"f"};
+function transmitInput(){send({type:"input",input})}
+
+window.addEventListener("keydown",e=>{
+ const k=map[e.code];if(!k)return;
+ e.preventDefault();
+ if(k==="f"){if(!e.repeat)sell();return}
+ input[k]=true;transmitInput();
+});
+window.addEventListener("keyup",e=>{
+ const k=map[e.code];if(!k||k==="f")return;
+ input[k]=false;transmitInput();
+});
+window.addEventListener("blur",()=>{
+ input={w:false,a:false,s:false,d:false};transmitInput();
+});
+
+document.querySelectorAll("[data-dir]").forEach(b=>{
+ const k=b.dataset.dir;
+ b.addEventListener("pointerdown",e=>{
+   e.preventDefault();input[k]=true;transmitInput();
+   b.setPointerCapture(e.pointerId);
+ });
+ const release=()=>{input[k]=false;transmitInput()};
+ b.addEventListener("pointerup",release);
+ b.addEventListener("pointercancel",release);
+ b.addEventListener("lostpointercapture",release);
+});
+
+// Весёлая музыка синтезируется браузером, отдельные файлы не нужны.
+function tone(freq,duration=.15,volume=.025,type="square"){
+ if(!audio||audio.state!=="running")return;
+ const o=audio.createOscillator(),g=audio.createGain();
+ o.type=type;o.frequency.value=freq;
+ g.gain.setValueAtTime(volume,audio.currentTime);
+ g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+duration);
+ o.connect(g);g.connect(audio.destination);
+ o.start();o.stop(audio.currentTime+duration);
+}
+function musicStep(){
+ if(!musicOn||!audio||audio.state!=="running")return;
+ const now=audio.currentTime;
+ while(nextNote<now+.2){
+   const f=melody[note++%melody.length];
+   const o=audio.createOscillator(),g=audio.createGain();
+   o.type="square";o.frequency.value=f;
+   g.gain.setValueAtTime(.001,nextNote);
+   g.gain.linearRampToValueAtTime(.02,nextNote+.02);
+   g.gain.exponentialRampToValueAtTime(.001,nextNote+.17);
+   o.connect(g);g.connect(audio.destination);
+   o.start(nextNote);o.stop(nextNote+.18);
+   nextNote+=.19;
+ }
+}
+$("music").onclick=async()=>{
+ if(!audio){
+   const AC=window.AudioContext||window.webkitAudioContext;
+   if(!AC){say("Браузер не поддерживает музыку.");return}
+   audio=new AC();
+ }
+ if(audio.state==="suspended")await audio.resume();
+ musicOn=!musicOn;
+ if(musicOn){
+   nextNote=audio.currentTime+.03;
+   musicTimer=setInterval(musicStep,40);
+   $("music").textContent="🔇 Выключить музыку";
+ }else{
+   clearInterval(musicTimer);musicTimer=null;
+   $("music").textContent="🎵 Включить музыку";
+ }
+};
+
+function drawLand(obj,rx,ry){
+ ellipse(obj.x,obj.y,rx,ry,"#d6b473");
+ ellipse(obj.x,obj.y,rx-10,ry-10,"#f3dca0");
+ ellipse(obj.x,obj.y,rx-24,ry-24,"#83bd68");
+}
+function flower(x,y,type,size){
+ ctx.strokeStyle="#398746";ctx.lineWidth=2;
+ ctx.beginPath();ctx.moveTo(x,y+size*.25);ctx.lineTo(x,y+size*.8);ctx.stroke();
+ const n=type==="sun"?10:9;
+ for(let i=0;i<n;i++){
+   const a=i*Math.PI*2/n;
+   ellipse(x+Math.cos(a)*size*.29,y+Math.sin(a)*size*.29,
+     size*.14,size*.19,type==="sun"?"#ffdb37":"#fffdf0");
+ }
+ ellipse(x,y,type==="sun"?size*.22:size*.15,type==="sun"?size*.22:size*.15,
+   type==="sun"?"#704421":"#ffd33e");
+}
+function field(x,y,cols,rows,type,step){
+ ctx.fillStyle="#76a24f";
+ ctx.beginPath();ctx.roundRect(x-10,y-10,cols*step+10,rows*step+10,10);ctx.fill();
+ for(let r=0;r<rows;r++)for(let c=0;c<cols;c++)
+   flower(x+c*step,y+r*step,type,type==="sun"?19:16);
+}
+function trader(p,animal,name){
+ ellipse(p.x,p.y+25,38,11,"#669550");
+ ctx.fillStyle="#b7814c";ctx.fillRect(p.x-36,p.y+3,72,24);
+ ctx.fillStyle="#f5d9a0";ctx.fillRect(p.x-31,p.y+8,62,14);
+ emoji(animal,p.x,p.y-19,46);
+ ctx.fillStyle="#25472e";ctx.font="bold 13px system-ui";
+ ctx.fillText(name,p.x,p.y-52);
+ const p1=me();
+ if(p1&&near(p1,p,80)){
+   ctx.fillStyle="#fff5d9";ctx.beginPath();
+   ctx.roundRect(p.x-65,p.y-84,130,23,7);ctx.fill();
+   ctx.fillStyle="#34563c";ctx.font="bold 12px system-ui";
+   ctx.fillText("F — продать всё",p.x,p.y-69);
+ }
+}
+function drawPlant(p){
+ if(p.type==="bamboo"){
+   ctx.fillStyle="#3d873b";
+   ctx.fillRect(p.x-6,p.y-13,5,26);ctx.fillRect(p.x+2,p.y-18,5,31);
+   ctx.fillStyle="#c9e77a";
+   ctx.fillRect(p.x-6,p.y-4,5,3);ctx.fillRect(p.x+2,p.y+4,5,3);
+ }else flower(p.x,p.y,p.type,p.type==="sun"?17:15);
+}
+function draw(){
+ const g=ctx.createLinearGradient(0,0,W,H);
+ g.addColorStop(0,"#55d9e8");g.addColorStop(1,"#0876af");
+ ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+
+ for(let i=0;i<75;i++){
+   const x=(i*137+27)%W,y=(i*89+13)%H;
+   ctx.strokeStyle="#8ce6ef";ctx.lineWidth=2;
+   ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+12,y);ctx.stroke();
+ }
+
+ drawLand({x:225,y:310},260,275);
+ drawLand(island,215,220);
+
+ // Песчаная тропинка соединяет оба острова.
+ ctx.lineCap="round";ctx.strokeStyle="#d1ad68";ctx.lineWidth=58;
+ ctx.beginPath();ctx.moveTo(420,310);ctx.lineTo(580,310);ctx.stroke();
+ ctx.strokeStyle="#f5dda0";ctx.lineWidth=44;
+ ctx.beginPath();ctx.moveTo(420,310);ctx.lineTo(580,310);ctx.stroke();
+
+ field(620,145,7,4,"sun",24);
+ field(610,420,7,3,"daisy",25);
+ field(810,170,4,3,"daisy",22);
+
+ ellipse(790,390,47,34,"#4b9150");
+ ellipse(790,390,40,27,"#64c9df");
+ emoji("🪷",772,390,17);
+
+ plants.forEach(drawPlant);
+ trader(panda,"🐼","ПАНДА");
+ trader(cat,"🐱","КОТ");
+
+ players.forEach(p=>{
+   ellipse(p.x,p.y+13,21,8,"#5f904c");
+   emoji("🦫",p.x,p.y,40);
+   if(p.bamboo+p.sun+p.daisy>0)emoji("🎒",p.x+20,p.y-18,18);
+   ctx.fillStyle="#fff8d8";ctx.font="bold 12px system-ui";
+   ctx.fillText(p.name,p.x,p.y-29);
+ });
+
+ ctx.fillStyle="#fff6d8";ctx.font="bold 15px system-ui";
+ ctx.fillText("СТАРАЯ ЛОКАЦИЯ",220,75);
+ ctx.fillText("ОСТРОВ ЦВЕТОВ 🌻",790,75);
+ ctx.fillText("ПЕСЧАНЫЙ МОСТ →",500,278);
+ requestAnimationFrame(draw);
+}
+connect();
+requestAnimationFrame(draw);
+})();
+</script>
+</body>
+</html>
